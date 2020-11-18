@@ -5,7 +5,7 @@ var gui;
 // tilt input params
 var tilt_angle_deg = 0.0;
 var tilt_angle_degMin = 0.0;
-var tilt_angle_degMax = 15;
+var tilt_angle_degMax = 15.0;
 var tilt_angle_degStep = 0.1;
 
 // ground hight input params
@@ -66,7 +66,6 @@ function setup() {
 function draw() {
   background(201);
   dynamic_p3.render();
-  dynamic_p3.update();
 
   //ground plane
   let c = color(35, 34, 45);
@@ -86,7 +85,7 @@ function draw() {
 }
 
 function P3(){
-  this.position = createVector(machine_left_side_x, ground_pos_y, -HALF_PI);
+  this.position = createVector(machine_left_side_x, ground_pos_y, 0);
 }
 
 P3.prototype.render = function(){
@@ -94,11 +93,24 @@ P3.prototype.render = function(){
   stroke(c);
   push();
   translate(this.position.x, this.position.y);
-  rotate(-this.position.z);
+  rotate( -radians(tilt_angle_deg));
 
   line(0,0, 0, -machineHeightM*pixelsPerMeter);
   line(0, -machineHeightM*pixelsPerMeter,  machineWidthM*pixelsPerMeter,-machineHeightM*pixelsPerMeter);
   line(machineWidthM*pixelsPerMeter,-machineHeightM*pixelsPerMeter, machineWidthM*pixelsPerMeter,0 );
+
+  // annotations
+  stroke(0,0,0)
+  strokeWeight(1)
+  text("2.0 m", machineWidthM*pixelsPerMeter/2, -machineHeightM*pixelsPerMeter-32 )
+  line(0, -machineHeightM*pixelsPerMeter-27,  machineWidthM*pixelsPerMeter,-machineHeightM*pixelsPerMeter - 27);
+
+  text("1.5 m",(machineWidthM/2 + rightCameraPosxM)*pixelsPerMeter/2, -machineHeightM*pixelsPerMeter-15 )
+  line(0, -machineHeightM*pixelsPerMeter-10,  (machineWidthM/2 + rightCameraPosxM)*pixelsPerMeter,-machineHeightM*pixelsPerMeter - 10);
+
+  text("1.1 m", -50, -machineHeightM*pixelsPerMeter/2)
+  line(-10, 0,  -10,-machineHeightM*pixelsPerMeter);
+
   camera_left = screenPosition( (machineWidthM/2 + leftCameraPosxM)*pixelsPerMeter, -machineHeightM*pixelsPerMeter , 0);
   camera_right = screenPosition( (machineWidthM/2 + rightCameraPosxM)*pixelsPerMeter, -machineHeightM*pixelsPerMeter , 0);
 
@@ -124,21 +136,17 @@ P3.prototype.render = function(){
 
 }
 
-P3.prototype.update = function(){
-  this.position.z = radians(tilt_angle_deg);
-
-}
-
 function draw_camera(ground_pos_y_, camera_center_, machine_angle_, error_pos, init_camera_center){
   stroke(255, 0, 0);
   circle(camera_center_.x, camera_center_.y, 5);
   stroke(0, 0, 0);
   strokeWeight(2);
+  camera_distance_from_ground_ = ground_pos_y_ - camera_center_.y;
 
   // right side
-  var camera_angle_with_ground_right_side = radians(initial_camera_angle_deg) + radians(machine_angle_);
-  camera_distance_from_ground = ground_pos_y_ - camera_center_.y;
-  projection_point_x = camera_center_.x + tan(camera_angle_with_ground_right_side)*camera_distance_from_ground;
+  var camera_angle_with_ground_right_side_ = radians(initial_camera_angle_deg) + radians(machine_angle_);
+
+  projection_point_x = camera_center_.x + tan(camera_angle_with_ground_right_side_)*camera_distance_from_ground_;
   line(camera_center_.x, camera_center_.y, projection_point_x, ground_pos_y_);
 
   // initial intersection
@@ -151,9 +159,8 @@ function draw_camera(ground_pos_y_, camera_center_, machine_angle_, error_pos, i
   strokeWeight(2);
 
   // left side
-  var camera_angle_with_ground_left_side = radians(-initial_camera_angle_deg) + radians(machine_angle_);
-  camera_distance_from_ground = ground_pos_y_ - camera_center_.y;
-  projection_point_x = camera_center_.x + tan(camera_angle_with_ground_left_side)*camera_distance_from_ground;
+  var camera_angle_with_ground_left_side_ = radians(-initial_camera_angle_deg) + radians(machine_angle_);
+  projection_point_x = camera_center_.x + tan(camera_angle_with_ground_left_side_)*camera_distance_from_ground_;
   line(camera_center_.x, camera_center_.y, projection_point_x, ground_pos_y_);
 
   // initial intersection
@@ -162,10 +169,9 @@ function draw_camera(ground_pos_y_, camera_center_, machine_angle_, error_pos, i
   // strokeWeight(4);
   // line(init_intersec_x, ground_pos_y_ + error_pos, projection_point_x, ground_pos_y_ + error_pos);
 
-  // middle
+  // // middle
   var camera_angle_with_ground_middle = radians(angle_from_optical_axis) + radians(machine_angle_);
-  camera_distance_from_ground = ground_pos_y_ - camera_center_.y;
-  projection_point_x = camera_center_.x + tan(camera_angle_with_ground_middle)*camera_distance_from_ground;
+  projection_point_x = camera_center_.x + tan(camera_angle_with_ground_middle)*camera_distance_from_ground_;
   line(camera_center_.x, camera_center_.y, projection_point_x, ground_pos_y_);
 
   // initial intersection
