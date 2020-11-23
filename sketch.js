@@ -40,6 +40,12 @@ var previous_angle;
 
 var right_error;
 
+//reset plot button
+var reset_plot_button;
+
+// draw current right wheel height vars
+var current_right_wheel_pos;
+
 function setup() {
   angleMode(RADIANS);
   var canvas = createCanvas(canvasWidth, canvasHeight);
@@ -57,10 +63,16 @@ function setup() {
   plot.setTitleText("Right camera projection error due to tilt error");
   plot.getXAxis().setAxisLabelText("angle from optical axis (deg)");
 	plot.getYAxis().setAxisLabelText("projection error (m)");
+  plot.setLineColor(0,0,0)
   points = [];
+  current_points = [];
   // points[0] = new GPoint(1, 1, "");
 
   previous_angle = angle_from_optical_axis;
+
+  reset_plot_button = createButton('Reset points');
+  reset_plot_button.position(canvasWidth - 430, canvasHeight - 140);
+  reset_plot_button.mousePressed(resetPlotPoints);
 }
 
 function draw() {
@@ -114,6 +126,8 @@ P3.prototype.render = function(){
   camera_left = screenPosition( (machineWidthM/2 + leftCameraPosxM)*pixelsPerMeter, -machineHeightM*pixelsPerMeter , 0);
   camera_right = screenPosition( (machineWidthM/2 + rightCameraPosxM)*pixelsPerMeter, -machineHeightM*pixelsPerMeter , 0);
 
+  current_right_wheel_pos = screenPosition(machineWidthM*pixelsPerMeter, 0,0);
+
   pop();
 
   push()
@@ -129,10 +143,13 @@ P3.prototype.render = function(){
     points[0] = new GPoint(angle_from_optical_axis,right_error, "");
   }else {
     points[points.length] = new GPoint(angle_from_optical_axis,right_error, "");
+    current_points[0] = new GPoint(angle_from_optical_axis,right_error, "");
   }
     previous_angle = angle_from_optical_axis;
-    plot.setPoints(points)
+    plot.setPoints(points);
   }
+  var initial_whee_position = createVector(machineWidthM*pixelsPerMeter, ground_pos_y,0)
+  drawRigthWheelHeight(current_right_wheel_pos,initial_whee_position, radians(tilt_angle_deg), machineWidthM*pixelsPerMeter)
 
 }
 
@@ -206,5 +223,21 @@ function draw_static_camera(ground_pos_y_, camera_center_){
   camera_distance_from_ground = ground_pos_y_ - camera_center_.y;
   projection_point_x = camera_center_.x + tan(camera_angle_with_ground_middle)*camera_distance_from_ground;
   line(camera_center_.x, camera_center_.y, projection_point_x, ground_pos_y_);
+
+}
+
+function resetPlotPoints(){
+  points = [];
+    plot.setPoints(points);
+}
+
+function drawRigthWheelHeight(current_wheel_position_, initial_whee_position, current_angle_, machine_width_){
+  stroke(0,0,255)
+  strokeWeight(2);
+  line(current_wheel_position_.x + 5, current_wheel_position_.y, current_wheel_position_.x + 5, initial_whee_position.y)
+  var height = machine_width_ * sin( current_angle_)
+  stroke(0,0,0)
+  strokeWeight(1);
+  text(nf(height/pixelsPerMeter,1,2) + " m", current_wheel_position_.x + 10 , initial_whee_position.y - (initial_whee_position.y - current_wheel_position_.y)/2)
 
 }
